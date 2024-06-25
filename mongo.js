@@ -39,14 +39,4 @@ if (process.argv.length === 5) {
     mongoose.connection.close()
   })
 }
-if (mongoose.connect.readyState === 1) {
-  try {
-    console.log('täällä')
-    mongoose.connection.close()
-    
-  } catch (error) {
-    console.log(eroor)
-
-  }
-} 
 
