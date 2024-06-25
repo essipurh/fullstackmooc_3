@@ -1,7 +1,0 @@
-POST https://fullstackmooc-3-app.onrender.com/api/persons
-Content-Type: application/json
-
-{
-  "name": "Test Tester",
-  "number": "010-1235678"
-}
