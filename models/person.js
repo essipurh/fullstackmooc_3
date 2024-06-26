@@ -18,8 +18,8 @@ const personSchema = new mongoose.Schema({
     type: String,
     validate: {
       message: ({ value }) => `${value} not a valid phone number! Must be like xxx-xxxxx or xx-xxxxxx and minimum 8 digits.`,
-      validator: (v) =>/^\d{2,3}-\d{6,}/.test(v),
-      },
+      validator: (v) => /^\d{2,3}-\d{6,}/.test(v),
+    },
     required: [true, 'Number is required.']
   }
 })

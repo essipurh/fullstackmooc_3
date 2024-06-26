@@ -33,15 +33,15 @@ app.get(`${api}/:id`, (req, res, next) => {
       if (person) {
         res.json(person)
       } else {
-        throw ({ name:'error.personNotFound', message:"person not found"})
+        throw ({ name:'error.personNotFound', message:'person not found' })
       }
     })
-  .catch(error => next(error))
+    .catch(error => next(error))
 })
 
 app.delete(`${api}/:id`, (req, res, next) => {
   Person.findByIdAndDelete(req.params.id)
-    .then(result => res.status(204).end())
+    .then(result => {console.log(result); return (res.status(204).end())})
     .catch(error => next(error))
 })
 
@@ -54,10 +54,10 @@ app.post(`${api}`, (req, res, next) => {
     number: body.number
   })
   newPerson.save()
-  .then(saved => res.json(saved))
-  .catch(error => {
-    next(error)
-  })
+    .then(saved => res.json(saved))
+    .catch(error => {
+      next(error)
+    })
 })
 
 app.put(`${api}/:id`, (req, res, next) => {
@@ -70,7 +70,7 @@ app.put(`${api}/:id`, (req, res, next) => {
   Person.findByIdAndUpdate(req.params.id, person, { new: true, runValidators: true, context: 'query' }) // new: true muuttunut olio mukaan palautuksessa
     .then(updatedPerson => {
       if (!updatedPerson) {
-        throw ({ name:'error.personNotFound', message: "Person not found." })
+        throw ({ name:'error.personNotFound', message: 'Person not found.' })
       }
       res.json(updatedPerson)
     })
@@ -86,8 +86,8 @@ const errorHandler = ( error, req ,res, next) => {
   if (error.name === 'CastError') {
     return res.status(400).send({ error:'error.malformaddedId', message:'Malformatted id.' }) // might need to change for future, so that the message shows in the ui
   } else if (error.name ==='ValidationError') {
-      return res.status(400).json({ error: error.errors })
-  } else if (error.name === "error.personNotFound") {
+    return res.status(400).json({ error: error.errors })
+  } else if (error.name === 'error.personNotFound') {
     return res.status(404).send({ error: { notFound: error } })
   }
 
