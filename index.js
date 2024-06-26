@@ -21,8 +21,10 @@ app.get('/info', (req, res, next) => {
     .catch(error => next(error))
 })
 
-app.get(api, (req, res) => {
-  Person.find({}).then(persons => res.json(persons))
+app.get(api, (req, res, next) => {
+  Person.find({})
+    .then(persons => res.json(persons))
+    .catch(error => next(error))
 })
 
 app.get(`${api}/:id`, (req, res, next) => {
@@ -31,7 +33,7 @@ app.get(`${api}/:id`, (req, res, next) => {
       if (person) {
         res.json(person)
       } else {
-        res.status(404).end()
+        throw ({ name:'error.personNotFound', message:"person not found"})
       }
     })
   .catch(error => next(error))
@@ -45,56 +47,48 @@ app.delete(`${api}/:id`, (req, res, next) => {
 
 app.post(`${api}`, (req, res, next) => {
   const body = req.body
-  if (!body.name || !body.number) {
-    return res.status(400).send({error: 'Must include name and number.'})
-  }
+  const reg = /^.{1}|[ -].{1}/g
+
   const newPerson = new Person({
-    name: body.name,
+    name: body.name.replace(reg, c => c.toUpperCase()),
     number: body.number
   })
-  Person.find({name: {$regex : new RegExp(body.name, "i")}})
-    .then(result => {
-      if (result.length === 0) {
-        newPerson.save().then(saved => res.json(saved))
-      } else {
-        res.status(400).json({error: 'Name must be unique.'})
-      }
-    })
-    .catch(error => {
-      console.log('errorissa')
-      next(error)
-    })
+  newPerson.save()
+  .then(saved => res.json(saved))
+  .catch(error => {
+    next(error)
+  })
 })
+
 app.put(`${api}/:id`, (req, res, next) => {
   const body = req.body
-  if (!body.number) {
-    return res.status(400).send({error: 'Must include name and number.'})
-  }
+  const reg = /^.{1}|[ -].{1}/g
   const person = {
-    name: body.name,
+    name: body.name.replace(reg, c => c.toUpperCase()),
     number: body.number
   }
-  Person.findByIdAndUpdate(req.params.id, person, { new: true }) // muuttunut olio mukaan palautuksessa
+  Person.findByIdAndUpdate(req.params.id, person, { new: true, runValidators: true, context: 'query' }) // new: true muuttunut olio mukaan palautuksessa
     .then(updatedPerson => {
       if (!updatedPerson) {
-        return res.status(404).end()
+        throw ({ name:'error.personNotFound', message: "Person not found." })
       }
       res.json(updatedPerson)
-      
     })
     .catch(error => {
-      console.log(error)
       next(error)
     })
 })
 
-const unknownEndpoint = (req,res) => res.status(404).send({ error: 'unknown endpoint' })
+const unknownEndpoint = (req,res) => res.status(404).send({ error: 'Unknown endpoint.' })
 app.use(unknownEndpoint)
 
-const errorHandler = ( error, request,response, next) => {
-  console.log(error.message)
+const errorHandler = ( error, req ,res, next) => {
   if (error.name === 'CastError') {
-    return res.status(400).send({error: 'malformatted id'})
+    return res.status(400).send({ error:'error.malformaddedId', message:'Malformatted id.' }) // might need to change for future, so that the message shows in the ui
+  } else if (error.name ==='ValidationError') {
+      return res.status(400).json({ error: error.errors })
+  } else if (error.name === "error.personNotFound") {
+    return res.status(404).send({ error: { notFound: error } })
   }
 
   next(error)

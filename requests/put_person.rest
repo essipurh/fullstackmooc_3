@@ -1,0 +1,7 @@
+PUT http://localhost:3001/api/persons/667ab628f6ba4b76889ea860
+Content-Type: application/json
+
+{
+  "name": "MongoDB Tester",
+  "number": "123-1234567"
+}
